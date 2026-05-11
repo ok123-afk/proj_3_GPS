@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>EventFlow — Entrar</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #0a0f1e;
+            --bg2: #0d1428;
+            --surface: rgba(255, 255, 255, 0.04);
+            --surface2: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #6c63ff;
+            --accent2: #a78bfa;
+            --accent3: #38bdf8;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --text: #f0f4ff;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(108, 99, 255, 0.15);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Background effects */
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 60%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(108, 99, 255, 0.12) 0%, transparent 65%);
+            animation: pulse1 8s ease-in-out infinite alternate;
+        }
+
+        .bg-glow::after {
+            content: '';
+            position: absolute;
+            bottom: -20%;
+            right: -10%;
+            width: 60%;
+            height: 70%;
+            background: radial-gradient(ellipse, rgba(56, 189, 248, 0.08) 0%, transparent 65%);
+            animation: pulse2 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse1 {
+            from {
+                transform: scale(1) translate(0, 0);
+            }
+
+            to {
+                transform: scale(1.1) translate(2%, 3%);
+            }
+        }
+
+        @keyframes pulse2 {
+            from {
+                transform: scale(1) translate(0, 0);
+            }
+
+            to {
+                transform: scale(1.15) translate(-2%, -2%);
+            }
+        }
+
+        /* Grid overlay */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(108, 99, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(108, 99, 255, 0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Layout */
+        .auth-layout {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .auth-hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            max-width: 560px;
+        }
+
+        .hero-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 64px;
+        }
+
+        .hero-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .hero-logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent2), var(--accent3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--accent2), var(--accent3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            color: var(--text2);
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 48px;
+            max-width: 380px;
+        }
+
+        .hero-features {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .hero-feat {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: border-color 0.2s;
+        }
+
+        .hero-feat:hover {
+            border-color: rgba(108, 99, 255, 0.3);
+        }
+
+        .hero-feat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .hero-feat-icon.p {
+            background: rgba(108, 99, 255, 0.15);
+        }
+
+        .hero-feat-icon.b {
+            background: rgba(56, 189, 248, 0.15);
+        }
+
+        .hero-feat-icon.g {
+            background: rgba(52, 211, 153, 0.15);
+        }
+
+        .hero-feat-text {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .hero-feat-sub {
+            font-size: 0.75rem;
+            color: var(--text3);
+            margin-top: 1px;
+        }
+
+        /* Auth panel */
+        .auth-panel {
+            width: 480px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-left: 1px solid var(--border);
+            background: rgba(13, 20, 40, 0.7);
+            backdrop-filter: blur(24px);
+        }
+
+        .auth-box {
+            width: 100%;
+            max-width: 380px;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--surface);
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 36px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 9px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text2);
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: #fff;
+            box-shadow: 0 2px 12px rgba(108, 99, 255, 0.4);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .auth-form h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .auth-form .subtitle {
+            font-size: 0.85rem;
+            color: var(--text2);
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text2);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 11px 14px;
+            color: var(--text);
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+        }
+
+        select.form-control option {
+            background: #0d1428;
+        }
+
+        .input-icon-wrap {
+            position: relative;
+        }
+
+        .input-icon-wrap .form-control {
+            padding-left: 42px;
+        }
+
+        .input-icon-wrap .icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text3);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .btn-full {
+            width: 100%;
+            padding: 13px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary-full {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+            margin-top: 8px;
+        }
+
+        .btn-primary-full:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 28px rgba(108, 99, 255, 0.55);
+        }
+
+        .btn-primary-full:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            color: var(--text3);
+            font-size: 0.75rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .demo-accounts {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-top: 20px;
+        }
+
+        .demo-title {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text3);
+            margin-bottom: 10px;
+        }
+
+        .demo-account {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            gap: 8px;
+        }
+
+        .demo-account:hover {
+            background: var(--surface2);
+        }
+
+        .demo-acc-info {
+            flex: 1;
+        }
+
+        .demo-acc-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .demo-acc-email {
+            font-size: 0.72rem;
+            color: var(--text3);
+        }
+
+        .demo-acc-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .badge-admin {
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--danger);
+        }
+
+        .badge-org {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--success);
+        }
+
+        .badge-part {
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--warning);
+        }
+
+        /* Error message */
+        .error-msg {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: var(--danger);
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        /* Success message */
+        .success-msg {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .success-msg.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        /* Role info */
+        .role-info {
+            background: rgba(108, 99, 255, 0.08);
+            border: 1px solid rgba(108, 99, 255, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 0.78rem;
+            color: var(--accent2);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #1a2340;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            min-width: 280px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .toast.success {
+            border-left: 3px solid var(--success);
+        }
+
+        .toast.info {
+            border-left: 3px solid var(--accent3);
+        }
+
+        .toast.warning {
+            border-left: 3px solid var(--warning);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .auth-hero {
+                display: none;
+            }
+
+            .auth-panel {
+                width: 100%;
+                border-left: none;
+                min-height: 100vh;
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+    <div class="grid-overlay"></div>
+
+    <div class="auth-layout">
+        <!-- Hero side -->
+        <div class="auth-hero">
+            <div class="hero-logo">
+                <div class="hero-logo-icon">⚡</div>
+                <span class="hero-logo-text">EventFlow</span>
+            </div>
+
+            <h1 class="hero-title">
+                Gestão inteligente<br>
+                de <span class="highlight">eventos digitais</span>
+            </h1>
+            <p class="hero-desc">
+                Plataforma completa para organizar, gerir e monitorizar eventos presenciais, online e híbridos — tudo
+                num só lugar.
+            </p>
+
+            <div class="hero-features">
+                <div class="hero-feat">
+                    <div class="hero-feat-icon p">📊</div>
+                    <div>
+                        <div class="hero-feat-text">Dashboard em tempo real</div>
+                        <div class="hero-feat-sub">KPIs, inscrições e presença ao momento</div>
+                    </div>
+                </div>
+                <div class="hero-feat">
+                    <div class="hero-feat-icon b">🎤</div>
+                    <div>
+                        <div class="hero-feat-text">Gestão de oradores e sessões</div>
+                        <div class="hero-feat-sub">Agenda, Q&A e sondagens integradas</div>
+                    </div>
+                </div>
+                <div class="hero-feat">
+                    <div class="hero-feat-icon g">🔔</div>
+                    <div>
+                        <div class="hero-feat-text">Comunicação automatizada</div>
+                        <div class="hero-feat-sub">Notificações push e email para participantes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth panel -->
+        <div class="auth-panel">
+            <div class="auth-box">
+                <div class="auth-tabs">
+                    <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Entrar</div>
+                    <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Registar</div>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <div class="auth-form active" id="form-login">
+                    <h2>Bem-vindo de volta</h2>
+                    <p class="subtitle">Entre na sua conta EventFlow</p>
+
+                    <div class="error-msg" id="login-error"></div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <div class="input-icon-wrap">
+                            <span class="icon">📧</span>
+                            <input type="email" class="form-control" id="login-email" placeholder="email@exemplo.com"
+                                value="ana.costa@email.com" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-icon-wrap">
+                            <span class="icon">🔒</span>
+                            <input type="password" class="form-control" id="login-password" placeholder="A sua password"
+                                value="admin123" />
+                        </div>
+                    </div>
+
+                    <button class="btn-full btn-primary-full" onclick="doLogin()">
+                        <span>Entrar</span> <span>→</span>
+                    </button>
+
+                    <div class="divider">Acesso rápido com conta demo</div>
+
+                    <div class="demo-accounts">
+                        <div class="demo-title">Contas de demonstração</div>
+                        <div class="demo-account" onclick="quickLogin('ana.costa@email.com','admin123')">
+                            <div class="demo-acc-info">
+                                <div class="demo-acc-name">Ana Costa</div>
+                                <div class="demo-acc-email">ana.costa@email.com</div>
+                            </div>
+                            <span class="demo-acc-badge badge-admin">Admin</span>
+                        </div>
+                        <div class="demo-account" onclick="quickLogin('pedro.matos@email.com','org123')">
+                            <div class="demo-acc-info">
+                                <div class="demo-acc-name">Pedro Matos</div>
+                                <div class="demo-acc-email">pedro.matos@email.com</div>
+                            </div>
+                            <span class="demo-acc-badge badge-org">Organizador</span>
+                        </div>
+                        <div class="demo-account" onclick="quickLogin('joao.f@email.com','part123')">
+                            <div class="demo-acc-info">
+                                <div class="demo-acc-name">João Ferreira</div>
+                                <div class="demo-acc-email">joao.f@email.com</div>
+                            </div>
+                            <span class="demo-acc-badge badge-part">Participante</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REGISTER FORM -->
+                <div class="auth-form" id="form-register">
+                    <h2>Criar conta</h2>
+                    <p class="subtitle">Junte-se ao EventFlow gratuitamente</p>
+
+                    <div class="error-msg" id="register-error"></div>
+                    <div class="success-msg" id="register-success"></div>
+
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <div class="input-icon-wrap">
+                            <span class="icon">👤</span>
+                            <input type="text" class="form-control" id="reg-name" placeholder="Ex: Maria Silva" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <div class="input-icon-wrap">
+                            <span class="icon">📧</span>
+                            <input type="email" class="form-control" id="reg-email" placeholder="email@exemplo.com" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <div class="input-icon-wrap">
+                            <span class="icon">🔒</span>
+                            <input type="password" class="form-control" id="reg-password"
+                                placeholder="Mínimo 6 caracteres" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Preferências de Comunicação</label>
+                        <select class="form-control" id="reg-pref">
+                            <option value="Email">📧 Email</option>
+                            <option value="Notificação">🔔 Notificação Push</option>
+                            <option value="Ambos">✅ Ambos</option>
+                        </select>
+                    </div>
+
+                    <div class="role-info">
+                        ℹ️ As contas novas são criadas como <strong>Participante</strong>. Um administrador poderá
+                        alterar o seu perfil para Organizador ou Orador.
+                    </div>
+
+                    <button class="btn-full btn-primary-full" onclick="doRegister()" style="margin-top:16px">
+                        <span>Criar Conta</span> <span>→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="data.js"></script>
+    <script>
+        // ---- Auth helpers ----
+        function switchTab(tab) {
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+            document.getElementById('form-login').classList.toggle('active', tab === 'login');
+            document.getElementById('form-register').classList.toggle('active', tab === 'register');
+        }
+
+        function doLogin() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pw = document.getElementById('login-password').value;
+            const err = document.getElementById('login-error');
+
+            if (!email || !pw) { showErr(err, 'Preencha email e password.'); return; }
+
+            const accounts = DB.get('accounts') || [];
+            const acc = accounts.find(a => a.email.toLowerCase() === email);
+
+            if (!acc) { showErr(err, 'Email não encontrado.'); return; }
+            if (acc.password !== pw) { showErr(err, 'Password incorreta.'); return; }
+            if (acc.status === 'Inativo') { showErr(err, 'Conta inativa. Contacte o administrador.'); return; }
+
+            // Save session
+            DB.set('session', { userId: acc.userId, email: acc.email, role: acc.role, name: acc.name });
+            showToast(`Bem-vindo, ${acc.name}! 🎉`);
+            setTimeout(() => { window.location.href = 'index.html'; }, 900);
+        }
+
+        function quickLogin(email, pw) {
+            document.getElementById('login-email').value = email;
+            document.getElementById('login-password').value = pw;
+            doLogin();
+        }
+
+        function doRegister() {
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const pw = document.getElementById('reg-password').value;
+            const pref = document.getElementById('reg-pref').value;
+            const err = document.getElementById('register-error');
+            const suc = document.getElementById('register-success');
+
+            err.classList.remove('show');
+            suc.classList.remove('show');
+
+            if (!name || !email || !pw) { showErr(err, 'Preencha todos os campos obrigatórios.'); return; }
+            if (pw.length < 6) { showErr(err, 'A password deve ter pelo menos 6 caracteres.'); return; }
+            if (!email.includes('@')) { showErr(err, 'Email inválido.'); return; }
+
+            const accounts = DB.get('accounts') || [];
+            if (accounts.find(a => a.email.toLowerCase() === email)) { showErr(err, 'Este email já está registado.'); return; }
+
+            // Add to users
+            const users = DB.get('users') || [];
+            const newId = nextId('users');
+            users.unshift({
+                id: newId, name, email,
+                role: 'Participante',
+                status: 'Ativo',
+                since: new Date().toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }),
+                prefs: pref,
+                hist: []
+            });
+            DB.set('users', users);
+
+            // Add account credentials
+            accounts.push({ userId: newId, name, email, password: pw, role: 'Participante', status: 'Ativo' });
+            DB.set('accounts', accounts);
+
+            suc.textContent = '✅ Conta criada com sucesso! A redirecionar para login...';
+            suc.classList.add('show');
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-email').value = '';
+            document.getElementById('reg-password').value = '';
+
+            setTimeout(() => {
+                switchTab('login');
+                document.getElementById('login-email').value = email;
+            }, 1800);
+        }
+
+        function showErr(el, msg) {
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toast-container');
+            const icons = { success: '✅', info: 'ℹ️', warning: '⚠️' };
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<span>${icons[type] || '✅'}</span><span>${msg}</span>`;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
+        }
+
+        // ---- Seed demo accounts if needed ----
+        (function seedAccounts() {
+            if (!DB.get('accounts')) {
+                DB.set('accounts', [
+                    { userId: 1, name: 'Ana Costa', email: 'ana.costa@email.com', password: 'admin123', role: 'Admin', status: 'Ativo' },
+                    { userId: 2, name: 'Pedro Matos', email: 'pedro.matos@email.com', password: 'org123', role: 'Organizador', status: 'Ativo' },
+                    { userId: 3, name: 'Rita Santos', email: 'rita.santos@email.com', password: 'ora123', role: 'Orador', status: 'Ativo' },
+                    { userId: 4, name: 'João Ferreira', email: 'joao.f@email.com', password: 'part123', role: 'Participante', status: 'Ativo' },
+                    { userId: 5, name: 'Margarida Lima', email: 'm.lima@email.com', password: 'part123', role: 'Participante', status: 'Inativo' },
+                    { userId: 6, name: 'Carlos Mendes', email: 'c.mendes@email.com', password: 'part123', role: 'Participante', status: 'Ativo' },
+                    { userId: 7, name: 'Sofia Alves', email: 'sofia.a@email.com', password: 'org123', role: 'Organizador', status: 'Ativo' },
+                ]);
+            }
+        })();
+
+        // ---- Keyboard submit ----
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('form-login').classList.contains('active')) doLogin();
+                else doRegister();
+            }
+        });
+
+        // ---- Check if already logged in ----
+        const sess = DB.get('session');
+        if (sess && sess.userId) {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>
