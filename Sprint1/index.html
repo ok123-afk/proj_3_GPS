@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EventFlow — Dashboard</title>
+  <meta name="description" content="Sistema de Gestão Inteligente de Eventos e Experiências Digitais" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h1>⚡ EventFlow</h1>
+      <span>Gestão Inteligente de Eventos</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">AD</div>
+        <div class="user-info">
+          <div class="name">Admin User</div>
+          <div class="role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <button onclick="sidebarToggle()" class="icon-btn" style="display:none" id="menu-btn">☰</button>
+      <span class="topbar-title">Dashboard</span>
+      <div class="topbar-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Pesquisar eventos, utilizadores..." />
+      </div>
+      <div class="topbar-actions">
+        <div class="icon-btn" onclick="showToast('Sem novas notificações','info')">🔔<span class="notif-dot"></span>
+        </div>
+        <!-- <button class="btn btn-secondary btn-sm" onclick="DB.remove('session');window.location.href='login.html'">🚪
+          Sair</button> -->
+      </div>
+    </div>
+
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h2>Dashboard Geral</h2>
+        <p>Visão geral do sistema — atualizado em tempo real</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-4" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon purple">🗓️</div>
+          <div class="stat-info">
+            <div class="value">24</div>
+            <div class="label">Eventos Ativos</div>
+            <div class="trend up">▲ 4 este mês</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">👤</div>
+          <div class="stat-info">
+            <div class="value">1 842</div>
+            <div class="label">Participantes</div>
+            <div class="trend up">▲ +12% vs mês anterior</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="value">78%</div>
+            <div class="label">Taxa de Presença</div>
+            <div class="trend up">▲ +3% vs mês anterior</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">⭐</div>
+          <div class="stat-info">
+            <div class="value">4.6</div>
+            <div class="label">Satisfação Média</div>
+            <div class="trend up">▲ +0.2 pontos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:24px">
+        <!-- Bar chart -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div>
+              <div style="font-weight:700;font-size:1rem">Participantes por Mês</div>
+              <div style="font-size:0.78rem;color:var(--text3)">Últimos 6 meses</div>
+            </div>
+            <span class="badge badge-active">2026</span>
+          </div>
+          <div class="bar-chart" id="bar-chart"></div>
+        </div>
+
+        <!-- Donut -->
+        <div class="card">
+          <div style="font-weight:700;font-size:1rem;margin-bottom:4px">Tipo de Eventos</div>
+          <div style="font-size:0.78rem;color:var(--text3);margin-bottom:20px">Distribuição por formato</div>
+          <div style="display:flex;align-items:center;gap:32px">
+            <div class="donut-wrap">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#1a2340" stroke-width="18" />
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#6c63ff" stroke-width="18" stroke-dasharray="120 182"
+                  stroke-linecap="round" />
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#38bdf8" stroke-width="18" stroke-dasharray="80 222"
+                  stroke-dashoffset="-120" stroke-linecap="round" />
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#34d399" stroke-width="18" stroke-dasharray="100 202"
+                  stroke-dashoffset="-200" stroke-linecap="round" />
+              </svg>
+              <div class="donut-center">
+                <div class="val">24</div>
+                <div class="lbl">Total</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem"><span
+                  style="width:10px;height:10px;border-radius:50%;background:#6c63ff;display:inline-block"></span>
+                Online <strong style="margin-left:auto">40%</strong></div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem"><span
+                  style="width:10px;height:10px;border-radius:50%;background:#38bdf8;display:inline-block"></span>
+                Presencial <strong style="margin-left:auto">26%</strong></div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem"><span
+                  style="width:10px;height:10px;border-radius:50%;background:#34d399;display:inline-block"></span>
+                Híbrido <strong style="margin-left:auto">34%</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <!-- Próximos eventos -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-weight:700">Próximos Eventos</div>
+            <a href="eventos.html" class="btn btn-secondary btn-sm">Ver todos</a>
+          </div>
+          <div id="upcoming-events"></div>
+        </div>
+
+        <!-- Notificações recentes -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-weight:700">Atividade Recente</div>
+            <a href="comunicacao.html" class="btn btn-secondary btn-sm">Ver todas</a>
+          </div>
+          <div id="recent-activity"></div>
+        </div>
+      </div>
+
+      <!-- Sessões populares -->
+      <div class="card" style="margin-top:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-weight:700">Sessões Mais Populares</div>
+          <a href="monitorizacao.html" class="btn btn-secondary btn-sm">Monitorização</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sessão</th>
+                <th>Evento</th>
+                <th>Orador</th>
+                <th>Inscritos</th>
+                <th>Ocupação</th>
+              </tr>
+            </thead>
+            <tbody id="popular-sessions"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="nav.js"></script>
+  <script src="data.js"></script>
+  <script>
+    buildSidebar('dashboard');
+
+    // Pull live data from localStorage
+    const evDB = DB.get('events') || [];
+    const usrDB = DB.get('users') || [];
+    const regDB = DB.get('registrations') || [];
+    const fbDB = DB.get('feedbacks') || [];
+
+    // Update KPI cards from live data
+    document.querySelector('.stat-card:nth-child(1) .value').textContent = evDB.filter(e => e.status === 'ativo').length;
+    document.querySelector('.stat-card:nth-child(2) .value').textContent = usrDB.length.toLocaleString('pt-PT');
+    const ciPct = regDB.length ? Math.round((regDB.filter(r => r.checkin).length / regDB.length) * 100) : 0;
+    document.querySelector('.stat-card:nth-child(3) .value').textContent = ciPct + '%';
+    const avgRating = fbDB.length ? (fbDB.reduce((a, f) => a + f.rating, 0) / fbDB.length).toFixed(1) : '4.6';
+    document.querySelector('.stat-card:nth-child(4) .value').textContent = avgRating;
+
+    // Bar chart (static trend data)
+    const months = ['Nov', 'Dez', 'Jan', 'Fev', 'Mar', 'Abr'];
+    const vals = [320, 450, 380, 610, 790, 840];
+    const max = Math.max(...vals);
+    const bc = document.getElementById('bar-chart');
+    bc.innerHTML = months.map((m, i) => `
+  <div class="bar-group">
+    <div class="bar-val">${vals[i]}</div>
+    <div class="bar" style="height:${(vals[i] / max) * 110}px"></div>
+    <div class="bar-label">${m}</div>
+  </div>`).join('');
+
+    // Upcoming events from localStorage
+    const upcoming = evDB.filter(e => e.status !== 'concluido' && e.status !== 'cancelado').slice(0, 4);
+    const statusBadge = { ativo: 'badge-active', planeado: 'badge-planned' };
+    const statusLabel = { ativo: 'Ativo', planeado: 'Planeado' };
+    document.getElementById('upcoming-events').innerHTML = upcoming.map(e => `
+  <div class="schedule-item">
+    <div class="schedule-time">${e.date}</div>
+    <div class="schedule-dot"></div>
+    <div class="schedule-info">
+      <div class="session">${e.name}</div>
+      <div class="speaker">${e.format}</div>
+    </div>
+    <span class="badge ${statusBadge[e.status] || 'badge-pending'}" style="margin-left:auto">${statusLabel[e.status] || e.status}</span>
+  </div>`).join('') || '<div style="color:var(--text3)">Sem eventos próximos.</div>';
+
+    // Recent activity from notifications
+    const notifs = (DB.get('notifications') || []).slice(0, 4);
+    const icons = { email: '📧', push: '🔔' };
+    document.getElementById('recent-activity').innerHTML = notifs.map(n => `
+  <div class="notif-item">
+    <div style="width:36px;height:36px;border-radius:10px;background:rgba(108,99,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">${icons[n.type] || '🔔'}</div>
+    <div class="notif-text"><div class="title">${n.title}</div><div class="sub">${n.msg.slice(0, 60)}…</div></div>
+    <div class="notif-time">${n.date}</div>
+  </div>`).join('') || '<div style="color:var(--text3)">Sem atividade recente.</div>';
+
+    // Popular sessions from localStorage
+    const sessDB = DB.get('sessions') || [];
+    const spDB = DB.get('speakers') || [];
+    document.getElementById('popular-sessions').innerHTML = sessDB.slice(0, 4).map(s => {
+      const ev = evDB.find(e => e.id === s.eventId); const sp = spDB.find(x => x.id === s.speakerId);
+      const cnt = regDB.filter(r => r.eventId === s.eventId).length;
+      const pct = ev ? Math.round((cnt / Math.max(ev.capacity, 1)) * 100) : 0;
+      return `<tr><td>${s.title}</td><td>${ev ? ev.name : '—'}</td><td>${sp ? sp.name : '—'}</td><td>${cnt}</td><td><div class="progress-bar" style="width:120px"><div class="progress-fill" style="width:${pct}%"></div></div></td></tr>`;
+    }).join('');
+  </script>
+</body>
+
+</html>
