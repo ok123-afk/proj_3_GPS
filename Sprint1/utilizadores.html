@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>EventFlow — Utilizadores</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .role-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .role-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text2);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .role-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .role-btn.selected-Admin {
+      border-color: var(--danger);
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--danger);
+    }
+
+    .role-btn.selected-Organizador {
+      border-color: var(--success);
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--success);
+    }
+
+    .role-btn.selected-Orador {
+      border-color: var(--accent3);
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent3);
+    }
+
+    .role-btn.selected-Participante {
+      border-color: var(--warning);
+      background: rgba(251, 191, 36, 0.1);
+      color: var(--warning);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(108, 99, 255, 0.08), rgba(56, 189, 248, 0.05));
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      margin-bottom: 20px;
+    }
+
+    .profile-avatar-lg {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .profile-name-lg {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .profile-email-lg {
+      font-size: 0.82rem;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .role-info-box {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      margin-top: 4px;
+      border: 1px solid;
+    }
+
+    .role-info-Admin {
+      background: rgba(248, 113, 113, 0.06);
+      border-color: rgba(248, 113, 113, 0.2);
+      color: #fca5a5;
+    }
+
+    .role-info-Organizador {
+      background: rgba(52, 211, 153, 0.06);
+      border-color: rgba(52, 211, 153, 0.2);
+      color: #6ee7b7;
+    }
+
+    .role-info-Orador {
+      background: rgba(56, 189, 248, 0.06);
+      border-color: rgba(56, 189, 248, 0.2);
+      color: #7dd3fc;
+    }
+
+    .role-info-Participante {
+      background: rgba(251, 191, 36, 0.06);
+      border-color: rgba(251, 191, 36, 0.2);
+      color: #fcd34d;
+    }
+
+    .admin-banner {
+      background: linear-gradient(135deg, rgba(248, 113, 113, 0.08), rgba(108, 99, 255, 0.06));
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: 0.8rem;
+      color: var(--danger);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .non-admin-banner {
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: 0.8rem;
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h1>⚡ EventFlow</h1><span>Gestão Inteligente de Eventos</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="sidebar-user-card">
+        <div class="user-avatar" id="sidebar-avatar">AD</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-username">Admin User</div>
+          <div class="role" id="sidebar-role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">👤 Utilizadores & Participantes</span>
+      <div class="topbar-search"><span class="search-icon">🔍</span><input type="text" id="search-user"
+          placeholder="Pesquisar utilizadores..." oninput="renderUsers()" /></div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-new')" id="btn-add-user">+ Novo
+          Utilizador</button>
+        <!--<button class="btn btn-secondary btn-sm" onclick="doLogout()">🚪 Sair</button>-->
+      </div>
+    </div>
+    <div style="padding:32px">
+
+      <!-- Access banner -->
+      <div id="access-banner"></div>
+
+      <div class="grid grid-4" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon purple">👥</div>
+          <div class="stat-info">
+            <div class="value" id="s-total">0</div>
+            <div class="label">Total Utilizadores</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <div class="value" id="s-active">0</div>
+            <div class="label">Contas Ativas</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">🎯</div>
+          <div class="stat-info">
+            <div class="value" id="s-avg">0</div>
+            <div class="label">Eventos p/ Utilizador</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">🎭</div>
+          <div class="stat-info">
+            <div class="value" id="s-roles">0</div>
+            <div class="label">Perfis Diferentes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div
+          style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div style="font-weight:700">Lista de Utilizadores</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select class="form-control" style="width:auto;padding:7px 12px;font-size:0.8rem" id="f-role"
+              onchange="renderUsers()">
+              <option value="">Todos os perfis</option>
+              <option>Admin</option>
+              <option>Organizador</option>
+              <option>Participante</option>
+              <option>Orador</option>
+            </select>
+            <select class="form-control" style="width:auto;padding:7px 12px;font-size:0.8rem" id="f-status"
+              onchange="renderUsers()">
+              <option value="">Todos os estados</option>
+              <option>Ativo</option>
+              <option>Inativo</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Perfil</th>
+                <th>Eventos</th>
+                <th>Estado</th>
+                <th>Desde</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Novo Utilizador (Admin only) -->
+  <div class="modal-overlay" id="modal-new">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>➕ Novo Utilizador</h3><button class="modal-close" onclick="closeModal('modal-new')">✕</button>
+      </div>
+      <div class="form-group"><label>Nome Completo</label><input class="form-control" id="n-name"
+          placeholder="Ex: Maria Silva" /></div>
+      <div class="form-group"><label>Email</label><input class="form-control" id="n-email" type="email"
+          placeholder="email@exemplo.com" /></div>
+      <div class="form-group"><label>Password Inicial</label><input class="form-control" id="n-password" type="password"
+          placeholder="Mínimo 6 caracteres" /></div>
+      <div class="form-group"><label>Perfil / Papel</label>
+        <select class="form-control" id="n-role">
+          <option value="Participante">👤 Participante</option>
+          <option value="Organizador">🗂️ Organizador</option>
+          <option value="Orador">🎤 Orador</option>
+          <option value="Admin">🔑 Admin</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Preferências de Comunicação</label>
+        <select class="form-control" id="n-pref">
+          <option>Email</option>
+          <option>Notificação</option>
+          <option>Ambos</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-primary" onclick="addUser()">Criar</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-new')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Perfil do Utilizador -->
+  <div class="modal-overlay" id="modal-profile">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <h3 id="p-name">Perfil</h3><button class="modal-close" onclick="closeModal('modal-profile')">✕</button>
+      </div>
+      <div id="p-body"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+  <script src="nav.js"></script>
+  <script src="data.js"></script>
+  <script>
+    buildSidebar('utilizadores');
+    const roleColors = { Admin: 'badge-cancel', Organizador: 'badge-active', Orador: 'badge-planned', Participante: 'badge-pending' };
+    const roleIcons = { Admin: '🔑', Organizador: '🗂️', Orador: '🎤', Participante: '👤' };
+    const roleDescriptions = {
+      Admin: '🔑 Acesso total ao sistema. Pode gerir utilizadores, alterar perfis, criar eventos e configurar a plataforma.',
+      Organizador: '🗂️ Pode criar e gerir eventos, sessões e oradores. Não tem acesso à gestão de utilizadores.',
+      Orador: '🎤 Pode ver as suas sessões atribuídas, responder a Q&A e visualizar agenda. Acesso limitado.',
+      Participante: '👤 Pode inscrever-se em eventos, fazer check-in, submeter feedback e marcar favoritos.',
+    };
+
+    function initials(n) { return n.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase(); }
+
+    // --- Session check ---
+    const session = DB.get('session');
+    const isAdmin = session && session.role === 'Admin';
+
+    function initPage() {
+      // Update sidebar user card
+      if (session) {
+        document.getElementById('sidebar-avatar').textContent = initials(session.name || 'U');
+        document.getElementById('sidebar-username').textContent = session.name || 'Utilizador';
+        document.getElementById('sidebar-role').textContent = session.role || 'Participante';
+      }
+
+      // Banner
+      const banner = document.getElementById('access-banner');
+      if (isAdmin) {
+        banner.innerHTML = `<div class="admin-banner">🔑 Modo Administrador — Pode alterar perfis, estados e criar utilizadores.</div>`;
+        document.getElementById('btn-add-user').style.display = '';
+      } else {
+        banner.innerHTML = `<div class="non-admin-banner">⚠️ Apenas administradores podem alterar perfis ou criar utilizadores. Está a ver em modo de leitura.</div>`;
+        document.getElementById('btn-add-user').style.display = 'none';
+      }
+    }
+
+    function renderUsers() {
+      const users = DB.get('users') || [];
+      const events = DB.get('events') || [];
+      const q = document.getElementById('search-user').value.toLowerCase();
+      const fr = document.getElementById('f-role').value;
+      const fs = document.getElementById('f-status').value;
+      const filtered = users.filter(u =>
+        (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) &&
+        (!fr || u.role === fr) && (!fs || u.status === fs)
+      );
+      document.getElementById('s-total').textContent = users.length;
+      document.getElementById('s-active').textContent = users.filter(u => u.status === 'Ativo').length;
+      document.getElementById('s-avg').textContent = (users.reduce((a, u) => (a + (u.hist || []).length), 0) / Math.max(users.length, 1)).toFixed(1);
+      document.getElementById('s-roles').textContent = [...new Set(users.map(u => u.role))].length;
+      document.getElementById('users-tbody').innerHTML = filtered.map(u => `
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="user-avatar" style="width:32px;height:32px;font-size:0.7rem;flex-shrink:0">${initials(u.name)}</div>${u.name}
+      </div></td>
+      <td>${u.email}</td>
+      <td><span class="badge ${roleColors[u.role] || 'badge-pending'}">${roleIcons[u.role] || ''} ${u.role}</span></td>
+      <td>${(u.hist || []).length}</td>
+      <td><span class="badge ${u.status === 'Ativo' ? 'badge-active' : 'badge-done'}">${u.status}</span></td>
+      <td>${u.since}</td>
+      <td><div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" onclick="viewProfile(${u.id})">Ver</button>
+        ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="toggleStatus(${u.id})">${u.status === 'Ativo' ? 'Desativar' : 'Ativar'}</button>` : ''}
+      </div></td>
+    </tr>`).join('');
+    }
+
+    function addUser() {
+      if (!isAdmin) { showToast('Sem permissão', 'warning'); return; }
+      const name = document.getElementById('n-name').value.trim();
+      const email = document.getElementById('n-email').value.trim().toLowerCase();
+      const password = document.getElementById('n-password').value;
+      const role = document.getElementById('n-role').value;
+      const pref = document.getElementById('n-pref').value;
+
+      if (!name || !email) { showToast('Preencha nome e email', 'warning'); return; }
+      if (password.length > 0 && password.length < 6) { showToast('Password mínimo 6 caracteres', 'warning'); return; }
+
+      const users = DB.get('users') || [];
+      const accounts = DB.get('accounts') || [];
+      if (accounts.find(a => a.email === email)) { showToast('Email já registado', 'warning'); return; }
+
+      const newId = nextId('users');
+      users.unshift({
+        id: newId, name, email, role, status: 'Ativo',
+        since: new Date().toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }), prefs: pref, hist: []
+      });
+      DB.set('users', users);
+
+      accounts.push({ userId: newId, name, email, password: password || 'changeme', role, status: 'Ativo' });
+      DB.set('accounts', accounts);
+
+      closeModal('modal-new');
+      showToast('Utilizador criado com sucesso!');
+      renderUsers();
+    }
+
+    function toggleStatus(id) {
+      if (!isAdmin) { showToast('Sem permissão', 'warning'); return; }
+      const users = DB.get('users') || [];
+      const accounts = DB.get('accounts') || [];
+      const u = users.find(x => x.id === id);
+      const a = accounts.find(x => x.userId === id);
+      if (u) {
+        u.status = u.status === 'Ativo' ? 'Inativo' : 'Ativo';
+        if (a) a.status = u.status;
+        DB.set('users', users);
+        DB.set('accounts', accounts);
+        renderUsers();
+        showToast('Estado atualizado');
+      }
+    }
+
+    function changeRole(userId, newRole) {
+      if (!isAdmin) { showToast('Sem permissão', 'warning'); return; }
+      const users = DB.get('users') || [];
+      const accounts = DB.get('accounts') || [];
+      const u = users.find(x => x.id === userId);
+      const a = accounts.find(x => x.userId === userId);
+      if (!u) return;
+
+      // Prevent removing last admin
+      if (u.role === 'Admin' && newRole !== 'Admin') {
+        const adminCount = users.filter(x => x.role === 'Admin').length;
+        if (adminCount <= 1) { showToast('Não é possível remover o único Admin', 'warning'); return; }
+      }
+
+      u.role = newRole;
+      if (a) a.role = newRole;
+      DB.set('users', users);
+      DB.set('accounts', accounts);
+
+      // Re-render the role buttons inside the modal
+      renderRoleButtons(userId, newRole);
+      renderUsers();
+      showToast(`Perfil alterado para ${roleIcons[newRole]} ${newRole}`);
+    }
+
+    function renderRoleButtons(userId, currentRole) {
+      const el = document.getElementById(`role-btns-${userId}`);
+      if (!el) return;
+      el.innerHTML = ['Admin', 'Organizador', 'Orador', 'Participante'].map(r => `
+    <button class="role-btn ${currentRole === r ? 'selected-' + r : ''}"
+      onclick="changeRole(${userId},'${r}')"
+      ${!isAdmin ? 'disabled title="Apenas administradores podem alterar perfis"' : ''}>
+      ${roleIcons[r]} ${r}
+    </button>`).join('');
+
+      // Update role info
+      const infoEl = document.getElementById(`role-info-${userId}`);
+      if (infoEl) {
+        infoEl.className = `role-info-box role-info-${currentRole}`;
+        infoEl.textContent = roleDescriptions[currentRole];
+      }
+    }
+
+    function viewProfile(id) {
+      const users = DB.get('users') || [];
+      const events = DB.get('events') || [];
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+
+      const isSelf = session && session.userId === id;
+
+      document.getElementById('p-name').textContent = u.name;
+      document.getElementById('p-body').innerHTML = `
+    <div class="profile-header">
+      <div class="profile-avatar-lg">${initials(u.name)}</div>
+      <div>
+        <div class="profile-name-lg">${u.name}</div>
+        <div class="profile-email-lg">${u.email}</div>
+        <div style="margin-top:8px">
+          <span class="badge ${roleColors[u.role] || 'badge-pending'}">${roleIcons[u.role] || ''} ${u.role}</span>
+          <span class="badge ${u.status === 'Ativo' ? 'badge-active' : 'badge-done'}" style="margin-left:6px">${u.status}</span>
+          ${isSelf ? '<span class="badge badge-planned" style="margin-left:6px">👤 Você</span>' : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="gap:10px;margin-bottom:20px">
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Membro desde</div><strong>${u.since}</strong></div>
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Eventos</div><strong>${(u.hist || []).length}</strong></div>
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Preferência</div><strong>${u.prefs}</strong></div>
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Estado</div><strong>${u.status}</strong></div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-weight:600;font-size:0.85rem;margin-bottom:10px">
+        Perfil / Papel
+        ${!isAdmin ? '<span style="font-size:0.72rem;color:var(--text3);font-weight:400;margin-left:8px">(apenas administradores podem alterar)</span>' : ''}
+      </div>
+      <div class="role-selector" id="role-btns-${u.id}"></div>
+      <div class="role-info-box role-info-${u.role}" id="role-info-${u.id}" style="margin-top:10px">${roleDescriptions[u.role]}</div>
+    </div>
+
+    <div style="font-weight:600;margin-bottom:8px;font-size:0.85rem">Histórico de Eventos</div>
+    ${(u.hist || []).map(eid => {
+        const ev = events.find(e => e.id === eid); return ev ? `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.85rem">
+        <div class="schedule-dot"></div>${ev.name}
+      </div>`: '';
+      }).join('') || '<div style="color:var(--text3);font-size:0.85rem">Sem histórico</div>'}
+
+    <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap">
+      ${isAdmin ? `<button class="btn btn-primary btn-sm" onclick="closeModal('modal-profile');showToast('Alterações guardadas')">💾 Guardar</button>` : ''}
+      ${isAdmin && u.status === 'Ativo' ? `<button class="btn btn-danger btn-sm" onclick="toggleStatus(${u.id});closeModal('modal-profile')">🚫 Desativar Conta</button>` : ''}
+      ${isAdmin && u.status !== 'Ativo' ? `<button class="btn btn-success btn-sm" onclick="toggleStatus(${u.id});closeModal('modal-profile')">✅ Ativar Conta</button>` : ''}
+    </div>`;
+
+      // Populate role buttons after rendering
+      renderRoleButtons(u.id, u.role);
+      openModal('modal-profile');
+    }
+
+    function doLogout() {
+      DB.remove('session');
+      window.location.href = 'login.html';
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    initPage();
+    renderUsers();
+  </script>
+</body>
+
+</html>
