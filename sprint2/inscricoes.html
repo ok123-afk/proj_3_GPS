@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EventFlow — Inscrições</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><h1>⚡ EventFlow</h1><span>Gestão Inteligente de Eventos</span></div>
+  <nav class="sidebar-nav" id="sidebar-nav"></nav>
+  <div class="sidebar-footer"><div class="user-card"><div class="user-avatar">AD</div><div class="user-info"><div class="name">Admin User</div><div class="role">Administrador</div></div></div></div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">✅ Inscrições & Check-in</span>
+    <div class="topbar-search"><span class="search-icon">🔍</span><input type="text" id="search-r" placeholder="Pesquisar inscrições..." oninput="renderRegs()"/></div>
+    <div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openModal('modal-new')">+ Nova Inscrição</button></div>
+  </div>
+  <div style="padding:32px">
+    <div class="grid grid-4" style="margin-bottom:24px">
+      <div class="stat-card"><div class="stat-icon purple">📋</div><div class="stat-info"><div class="value" id="s-total">0</div><div class="label">Total Inscrições</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="value" id="s-confirmed">0</div><div class="label">Confirmadas</div></div></div>
+      <div class="stat-card"><div class="stat-icon yellow">⏳</div><div class="stat-info"><div class="value" id="s-pending">0</div><div class="label">Pendentes</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">📲</div><div class="stat-info"><div class="value" id="s-checkin">0</div><div class="label">Check-ins Feitos</div></div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div style="font-weight:700">Lista de Inscrições</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select class="form-control" id="f-event" style="width:auto;padding:7px 12px;font-size:0.8rem" onchange="renderRegs()">
+            <option value="">Todos os eventos</option>
+          </select>
+          <select class="form-control" id="f-status" style="width:auto;padding:7px 12px;font-size:0.8rem" onchange="renderRegs()">
+            <option value="">Todos os estados</option>
+            <option>confirmado</option><option>pendente</option><option>cancelado</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Participante</th><th>Evento</th><th>Data Inscrição</th><th>Estado</th><th>Check-in</th><th>Ações</th></tr></thead>
+          <tbody id="regs-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- QR Check-in simulation -->
+    <div class="card" style="text-align:center;padding:32px">
+      <div style="font-size:3rem;margin-bottom:12px">📲</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:6px">Check-in Digital Simulado</div>
+      <div style="color:var(--text3);font-size:0.875rem;margin-bottom:20px">Selecione uma inscrição confirmada para fazer check-in instantâneo</div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <select class="form-control" id="checkin-select" style="width:280px">
+          <option value="">Selecionar inscrição...</option>
+        </select>
+        <button class="btn btn-success" onclick="doCheckin()">📲 Fazer Check-in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-new">
+  <div class="modal">
+    <div class="modal-header"><h3>➕ Nova Inscrição</h3><button class="modal-close" onclick="closeModal('modal-new')">✕</button></div>
+    <div class="form-group"><label>Participante</label><select class="form-control" id="n-user"></select></div>
+    <div class="form-group"><label>Evento</label><select class="form-control" id="n-event"></select></div>
+    <div class="form-group"><label>Estado</label>
+      <select class="form-control" id="n-status"><option value="pendente">Pendente</option><option value="confirmado">Confirmado</option></select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-primary" onclick="addReg()">Inscrever</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-new')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="nav.js"></script><script src="data.js"></script>
+<script>
+buildSidebar('inscricoes');
+
+function populateSelects() {
+  const events = DB.get('events') || [];
+  const users = DB.get('users') || [];
+  const fev = document.getElementById('f-event');
+  fev.innerHTML = '<option value="">Todos os eventos</option>' + events.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('n-event').innerHTML = events.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('n-user').innerHTML = users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+}
+
+function renderRegs() {
+  const regs = DB.get('registrations') || [];
+  const users = DB.get('users') || [];
+  const events = DB.get('events') || [];
+  const q = document.getElementById('search-r').value.toLowerCase();
+  const fev = document.getElementById('f-event').value;
+  const fst = document.getElementById('f-status').value;
+
+  document.getElementById('s-total').textContent = regs.length;
+  document.getElementById('s-confirmed').textContent = regs.filter(r=>r.status==='confirmado').length;
+  document.getElementById('s-pending').textContent = regs.filter(r=>r.status==='pendente').length;
+  document.getElementById('s-checkin').textContent = regs.filter(r=>r.checkin).length;
+
+  const filtered = regs.filter(r => {
+    const u = users.find(x=>x.id===r.userId);
+    const e = events.find(x=>x.id===r.eventId);
+    return (!q || (u&&u.name.toLowerCase().includes(q))||(e&&e.name.toLowerCase().includes(q))) &&
+      (!fev || String(r.eventId)===fev) && (!fst || r.status===fst);
+  });
+
+  document.getElementById('regs-tbody').innerHTML = filtered.map(r => {
+    const u = users.find(x=>x.id===r.userId);
+    const e = events.find(x=>x.id===r.eventId);
+    return `<tr>
+      <td>${u?u.name:'Desconhecido'}</td>
+      <td>${e?e.name:'Desconhecido'}</td>
+      <td>${r.date}</td>
+      <td><span class="badge ${r.status==='confirmado'?'badge-active':r.status==='pendente'?'badge-pending':'badge-cancel'}">${r.status}</span></td>
+      <td><span class="badge ${r.checkin?'badge-active':'badge-done'}">${r.checkin?'✅ Feito':'⏳ Pendente'}</span></td>
+      <td><div style="display:flex;gap:6px">
+        ${!r.checkin&&r.status==='confirmado'?`<button class="btn btn-success btn-sm" onclick="checkinById(${r.id})">Check-in</button>`:''}
+        ${r.status==='pendente'?`<button class="btn btn-primary btn-sm" onclick="confirmReg(${r.id})">Confirmar</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="cancelReg(${r.id})">Cancelar</button>
+      </div></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">Sem inscrições</td></tr>';
+
+  // Populate checkin select
+  const pending = regs.filter(r=>r.status==='confirmado'&&!r.checkin);
+  document.getElementById('checkin-select').innerHTML = '<option value="">Selecionar inscrição...</option>' +
+    pending.map(r=>{
+      const u=users.find(x=>x.id===r.userId); const e=events.find(x=>x.id===r.eventId);
+      return `<option value="${r.id}">${u?u.name:'?'} — ${e?e.name:'?'}</option>`;
+    }).join('');
+}
+
+function addReg() {
+  const regs = DB.get('registrations') || [];
+  const uid = parseInt(document.getElementById('n-user').value);
+  const eid = parseInt(document.getElementById('n-event').value);
+  if (regs.find(r=>r.userId===uid&&r.eventId===eid)) { showToast('Utilizador já inscrito neste evento','warning'); return; }
+  regs.unshift({ id:nextId('regs'), userId:uid, eventId:eid, status:document.getElementById('n-status').value, checkin:false, date:new Date().toISOString().split('T')[0] });
+  DB.set('registrations', regs);
+  closeModal('modal-new');
+  showToast('Inscrição criada!');
+  renderRegs();
+}
+
+function confirmReg(id) {
+  const regs = DB.get('registrations') || [];
+  const r = regs.find(x=>x.id===id);
+  if (r) { r.status='confirmado'; DB.set('registrations',regs); showToast('Inscrição confirmada!'); renderRegs(); }
+}
+
+function cancelReg(id) {
+  DB.set('registrations', (DB.get('registrations')||[]).filter(r=>r.id!==id));
+  showToast('Inscrição cancelada','warning');
+  renderRegs();
+}
+
+function checkinById(id) {
+  const regs = DB.get('registrations') || [];
+  const r = regs.find(x=>x.id===id);
+  if (r) { r.checkin=true; DB.set('registrations',regs); showToast('Check-in realizado! ✅'); renderRegs(); }
+}
+
+function doCheckin() {
+  const id = parseInt(document.getElementById('checkin-select').value);
+  if (!id) { showToast('Selecione uma inscrição','warning'); return; }
+  checkinById(id);
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+populateSelects();
+renderRegs();
+</script>
+</body>
+</html>
