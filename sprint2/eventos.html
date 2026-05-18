@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EventFlow — Eventos</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><h1>⚡ EventFlow</h1><span>Gestão Inteligente de Eventos</span></div>
+  <nav class="sidebar-nav" id="sidebar-nav"></nav>
+  <div class="sidebar-footer"><div class="user-card"><div class="user-avatar">AD</div><div class="user-info"><div class="name">Admin User</div><div class="role">Administrador</div></div></div></div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">🗓️ Gestão de Eventos</span>
+    <div class="topbar-search"><span class="search-icon">🔍</span><input type="text" id="search-ev" placeholder="Pesquisar eventos..." oninput="renderEvents()"/></div>
+    <div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openModal('modal-new')">+ Novo Evento</button></div>
+  </div>
+  <div style="padding:32px">
+    <div class="grid grid-4" style="margin-bottom:24px">
+      <div class="stat-card"><div class="stat-icon purple">🗓️</div><div class="stat-info"><div class="value" id="s-total">0</div><div class="label">Total Eventos</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">▶️</div><div class="stat-info"><div class="value" id="s-active">0</div><div class="label">Ativos</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">📅</div><div class="stat-info"><div class="value" id="s-planned">0</div><div class="label">Planeados</div></div></div>
+      <div class="stat-card"><div class="stat-icon yellow">✔️</div><div class="stat-info"><div class="value" id="s-done">0</div><div class="label">Concluídos</div></div></div>
+    </div>
+
+    <div class="tabs" id="tab-bar">
+      <div class="tab active" onclick="setTab('todos',this)">Todos</div>
+      <div class="tab" onclick="setTab('ativo',this)">Ativos</div>
+      <div class="tab" onclick="setTab('planeado',this)">Planeados</div>
+      <div class="tab" onclick="setTab('concluido',this)">Concluídos</div>
+      <div class="tab" onclick="setTab('cancelado',this)">Cancelados</div>
+    </div>
+
+    <div class="grid grid-3" id="events-grid"></div>
+  </div>
+</div>
+
+<!-- Modal novo evento -->
+<div class="modal-overlay" id="modal-new">
+  <div class="modal">
+    <div class="modal-header"><h3>➕ Novo Evento</h3><button class="modal-close" onclick="closeModal('modal-new')">✕</button></div>
+    <div class="form-group"><label>Nome do Evento</label><input class="form-control" id="n-name" placeholder="Ex: Tech Summit 2026"/></div>
+    <div class="form-group"><label>Descrição</label><textarea class="form-control" id="n-desc" rows="3" placeholder="Descrição do evento..."></textarea></div>
+    <div class="grid grid-2" style="gap:12px">
+      <div class="form-group"><label>Data</label><input class="form-control" id="n-date" type="date"/></div>
+      <div class="form-group"><label>Capacidade</label><input class="form-control" id="n-cap" type="number" placeholder="100"/></div>
+    </div>
+    <div class="form-group"><label>Local / URL</label><input class="form-control" id="n-local" placeholder="Ex: Lisboa / meet.google.com/..."/></div>
+    <div class="form-group"><label>Formato</label>
+      <select class="form-control" id="n-format">
+        <option value="online">Online</option><option value="presencial">Presencial</option><option value="hibrido">Híbrido</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-primary" onclick="addEvent()">Criar Evento</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-new')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal detalhe evento -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header"><h3 id="d-name"></h3><button class="modal-close" onclick="closeModal('modal-detail')">✕</button></div>
+    <div id="d-body"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="nav.js"></script><script src="data.js"></script>
+<script>
+buildSidebar('eventos');
+let currentTab = 'todos';
+
+function setTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderEvents();
+}
+
+const formatLabel = { online:'Online', presencial:'Presencial', hibrido:'Híbrido' };
+const statusBadge = { ativo:'badge-active', planeado:'badge-planned', concluido:'badge-done', cancelado:'badge-cancel' };
+const statusLabel = { ativo:'Ativo', planeado:'Planeado', concluido:'Concluído', cancelado:'Cancelado' };
+
+function renderEvents() {
+  const events = DB.get('events') || [];
+  const q = document.getElementById('search-ev').value.toLowerCase();
+  document.getElementById('s-total').textContent = events.length;
+  document.getElementById('s-active').textContent = events.filter(e=>e.status==='ativo').length;
+  document.getElementById('s-planned').textContent = events.filter(e=>e.status==='planeado').length;
+  document.getElementById('s-done').textContent = events.filter(e=>e.status==='concluido').length;
+
+  const regs = DB.get('registrations') || [];
+  const filtered = events.filter(e =>
+    (currentTab==='todos' || e.status===currentTab) &&
+    (!q || e.name.toLowerCase().includes(q) || e.local.toLowerCase().includes(q))
+  );
+
+  document.getElementById('events-grid').innerHTML = filtered.length ? filtered.map(e => {
+    const count = regs.filter(r=>r.eventId===e.id).length;
+    const pct = Math.round((count/Math.max(e.capacity,1))*100);
+    return `<div class="event-card" onclick="viewEvent(${e.id})">
+      <div class="event-type-bar ${e.format}"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <span class="badge ${statusBadge[e.status]||'badge-pending'}">${statusLabel[e.status]||e.status}</span>
+        <span class="tag">${formatLabel[e.format]||e.format}</span>
+      </div>
+      <div class="event-title">${e.name}</div>
+      <div style="font-size:0.8rem;color:var(--text3);margin-bottom:12px">${e.desc}</div>
+      <div class="event-meta">
+        <span>📅 ${e.date}</span>
+        <span>📍 ${e.local}</span>
+        <span>👥 ${count}/${e.capacity}</span>
+      </div>
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text3);margin-bottom:4px"><span>Ocupação</span><span>${pct}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px" onclick="event.stopPropagation()">
+        <button class="btn btn-secondary btn-sm" onclick="viewEvent(${e.id})">Detalhes</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id})">Eliminar</button>
+      </div>
+    </div>`;
+  }).join('') : '<div style="color:var(--text3);padding:32px;text-align:center;grid-column:1/-1">Nenhum evento encontrado.</div>';
+}
+
+function addEvent() {
+  const name = document.getElementById('n-name').value.trim();
+  const date = document.getElementById('n-date').value;
+  if (!name || !date) { showToast('Preencha nome e data','warning'); return; }
+  const events = DB.get('events') || [];
+  events.unshift({
+    id: nextId('events'), name, date, local: document.getElementById('n-local').value||'TBD',
+    format: document.getElementById('n-format').value, status:'planeado',
+    capacity: parseInt(document.getElementById('n-cap').value)||100,
+    desc: document.getElementById('n-desc').value
+  });
+  DB.set('events', events);
+  closeModal('modal-new');
+  showToast('Evento criado com sucesso!');
+  renderEvents();
+}
+
+function deleteEvent(id) {
+  const events = DB.get('events') || [];
+  DB.set('events', events.filter(e=>e.id!==id));
+  showToast('Evento eliminado','warning');
+  renderEvents();
+}
+
+function viewEvent(id) {
+  const events = DB.get('events') || [];
+  const regs = DB.get('registrations') || [];
+  const sessions = DB.get('sessions') || [];
+  const e = events.find(x=>x.id===id);
+  if (!e) return;
+  const count = regs.filter(r=>r.eventId===id).length;
+  const evSessions = sessions.filter(s=>s.eventId===id);
+  document.getElementById('d-name').textContent = e.name;
+  document.getElementById('d-body').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <span class="badge ${statusBadge[e.status]}">${statusLabel[e.status]}</span>
+      <span class="tag">${formatLabel[e.format]}</span>
+    </div>
+    <p style="color:var(--text2);font-size:0.875rem;margin-bottom:16px">${e.desc}</p>
+    <div class="grid grid-2" style="gap:10px;margin-bottom:16px">
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Data</div><strong>${e.date}</strong></div>
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Local</div><strong>${e.local}</strong></div>
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Inscritos</div><strong>${count} / ${e.capacity}</strong></div>
+      <div class="card" style="padding:12px"><div style="font-size:0.7rem;color:var(--text3)">Sessões</div><strong>${evSessions.length}</strong></div>
+    </div>
+    <div style="font-weight:600;margin-bottom:8px;font-size:0.85rem">Alterar Estado</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      ${['planeado','ativo','concluido','cancelado'].map(s=>`<button class="btn btn-secondary btn-sm ${e.status===s?'btn-primary':''}" onclick="changeStatus(${id},'${s}')">${statusLabel[s]}</button>`).join('')}
+    </div>
+    <div style="font-weight:600;margin-bottom:8px;font-size:0.85rem">Sessões do Evento</div>
+    ${evSessions.length ? evSessions.map(s=>`<div class="schedule-item"><div class="schedule-time">${s.start}</div><div class="schedule-dot"></div><div class="schedule-info"><div class="session">${s.title}</div><div class="speaker">${s.room}</div></div></div>`).join('') : '<div style="color:var(--text3);font-size:0.85rem">Sem sessões registadas</div>'}`;
+  openModal('modal-detail');
+}
+
+function changeStatus(id, status) {
+  const events = DB.get('events') || [];
+  const e = events.find(x=>x.id===id);
+  if (e) { e.status = status; DB.set('events', events); closeModal('modal-detail'); showToast('Estado atualizado'); renderEvents(); }
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+renderEvents();
+</script>
+</body>
+</html>
